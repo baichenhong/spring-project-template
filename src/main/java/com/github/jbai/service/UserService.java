@@ -40,7 +40,8 @@ public class UserService {
 	public List<User> findAllUsers() {
 		return userRepository.findAll();
 	}
-
+	
+	@Transactional
 	public void updateProfile(long userId, MultipartFile file) throws Exception {
 		MediaType mediaType = MediaType.parseMediaType(file.getContentType());		
 		File f = new File(path + File.separator + System.currentTimeMillis() + "." + mediaType.getSubtype());
