@@ -24,7 +24,7 @@ public class APIControllerTest {
 		u.setName("name1");
 		u.setPassword("password1");
 		HttpEntity<User> requestEntity = new HttpEntity(u);
-		ResponseEntity<String> result = template.postForEntity("http://localhost:8080/jbai/api/register", u, String.class);
+		ResponseEntity<String> result = template.postForEntity("http://localhost:8080/jbai/api/async/register", u, String.class);
 		System.out.println(result);
 		HttpStatus statusCode = result.getStatusCode();
 		String code = result.getHeaders().get("x-code").get(0);

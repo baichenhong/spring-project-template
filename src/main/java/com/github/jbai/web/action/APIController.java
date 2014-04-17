@@ -1,6 +1,7 @@
 package com.github.jbai.web.action;
 
 import java.util.List;
+import java.util.concurrent.Callable;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,6 +49,23 @@ public class APIController {
 		responseHeaders.set("x-code", "200");
 		responseHeaders.set("x-message", "success");
 		return new ResponseEntity<String>(String.valueOf(u.getId()), responseHeaders, HttpStatus.OK);
+	}
+	
+	/**
+	 * Simply selects the home view to render by returning its name.
+	 */
+	@RequestMapping(value = "/async/register", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	@ResponseBody
+	public Callable<ResponseEntity<String>> asyncRegisterUser(@RequestBody final User user, Model model) {
+		return new Callable<ResponseEntity<String>>() {
+			public ResponseEntity<String> call() throws Exception {
+				User u = userService.addUser(user);
+				HttpHeaders responseHeaders = new HttpHeaders();
+				responseHeaders.set("x-code", "200");
+				responseHeaders.set("x-message", "success");
+				return new ResponseEntity<String>(String.valueOf(u.getId()), responseHeaders, HttpStatus.OK);
+			}
+		};		
 	}
 	
 	/**

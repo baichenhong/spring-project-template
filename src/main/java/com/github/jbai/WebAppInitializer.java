@@ -26,6 +26,7 @@ public class WebAppInitializer implements WebApplicationInitializer {
 		File tempdir = (File) container.getAttribute("javax.servlet.context.tempdir");
 		registration.setMultipartConfig(new MultipartConfigElement(tempdir.getAbsolutePath(), maxUploadSizeInMb, maxUploadSizeInMb * 2, maxUploadSizeInMb / 2));
 		registration.setLoadOnStartup(1);
+		registration.setAsyncSupported(true);
 		registration.addMapping("/");
 	}
 

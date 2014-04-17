@@ -71,7 +71,8 @@ public class AppConfig {
 		return props;
 	}
 	
-	@Bean public JpaDialect jpaDialect() {
+	@Bean 
+	public JpaDialect jpaDialect() {
 		return new HibernateJpaDialect();
 	}
 	
