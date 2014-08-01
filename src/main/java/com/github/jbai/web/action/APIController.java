@@ -1,6 +1,8 @@
 package com.github.jbai.web.action;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 
 import org.slf4j.Logger;
@@ -42,13 +44,11 @@ public class APIController {
 	 * Simply selects the home view to render by returning its name.
 	 */
 	@RequestMapping(value = "/register", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	@ResponseBody
-	public ResponseEntity<String> registerUser(@RequestBody User user, Model model) {
+	public @ResponseBody ResponseEntity<Map<String, String>> registerUser(@RequestBody User user, Model model) {
 		User u = userService.addUser(user);
-		HttpHeaders responseHeaders = new HttpHeaders();
-		responseHeaders.set("x-code", "200");
-		responseHeaders.set("x-message", "success");
-		return new ResponseEntity<String>(String.valueOf(u.getId()), responseHeaders, HttpStatus.OK);
+		Map<String, String> result = new HashMap<String, String>();
+		result.put("id", String.valueOf(u.getId()));
+		return new ResponseEntity<Map<String, String>>(result, HttpStatus.OK);
 	}
 	
 	/**
@@ -56,14 +56,13 @@ public class APIController {
 	 */
 	@RequestMapping(value = "/async/register", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	@ResponseBody
-	public Callable<ResponseEntity<String>> asyncRegisterUser(@RequestBody final User user, Model model) {
-		return new Callable<ResponseEntity<String>>() {
-			public ResponseEntity<String> call() throws Exception {
+	public Callable<ResponseEntity<Map<String, String>>> asyncRegisterUser(@RequestBody final User user, Model model) {
+		return new Callable<ResponseEntity<Map<String, String>>>() {
+			public ResponseEntity<Map<String, String>> call() throws Exception {
 				User u = userService.addUser(user);
-				HttpHeaders responseHeaders = new HttpHeaders();
-				responseHeaders.set("x-code", "200");
-				responseHeaders.set("x-message", "success");
-				return new ResponseEntity<String>(String.valueOf(u.getId()), responseHeaders, HttpStatus.OK);
+				Map<String, String> result = new HashMap<String, String>();
+				result.put("id", String.valueOf(u.getId()));
+				return new ResponseEntity<Map<String, String>>(result, HttpStatus.OK);
 			}
 		};		
 	}
@@ -84,15 +83,12 @@ public class APIController {
 
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<String> handleException(Exception e) {
-		int errorCode = 500;
+		HttpStatus errorCode = HttpStatus.INTERNAL_SERVER_ERROR;
 		String errorMessage = e.getMessage();
 		if(e instanceof APIException) {
-			errorCode = ((APIException)e).getErrorCode();
+			errorCode = HttpStatus.valueOf(((APIException)e).getErrorCode());
 		}
-		HttpHeaders responseHeaders = new HttpHeaders();
-		responseHeaders.set("x-code", String.valueOf(errorCode));
-		responseHeaders.set("x-message", errorMessage);
-		return new ResponseEntity<String>("", responseHeaders, HttpStatus.OK);
+		return new ResponseEntity<String>(errorMessage, errorCode);
 	}
 
 }

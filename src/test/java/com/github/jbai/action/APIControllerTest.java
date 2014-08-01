@@ -1,71 +1,66 @@
 package com.github.jbai.action;
 
-import static org.junit.Assert.assertEquals;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import org.junit.Before;
 import org.junit.Test;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.RestTemplate;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.web.WebAppConfiguration;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.context.WebApplicationContext;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.jbai.TestConfig;
+import com.github.jbai.WebConfig;
 import com.github.jbai.entity.User;
+import com.github.jbai.service.UserService;
 
+@RunWith(SpringJUnit4ClassRunner.class)
+@WebAppConfiguration
+@Transactional
+@ContextConfiguration(classes = { TestConfig.class, WebConfig.class })
+@DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class APIControllerTest {
 	
-	protected final RestTemplate template = new RestTemplate();
+	private MockMvc mockMvc;
+
+	private ObjectMapper mapper;	
+	
+	@Autowired
+    private WebApplicationContext wac;
+	
+	@Autowired
+	private UserService userService;
+	
+    @Before
+    public void setup() {
+    	this.mockMvc = MockMvcBuilders.webAppContextSetup(this.wac).build();
+        this.mapper = new ObjectMapper();
+    }	
 	
 	@Test
-	public void testRegisterUser() {
-		User u = new User();
-		u.setLoginName("loginname1");
-		u.setName("name1");
-		u.setPassword("password1");
-		HttpEntity<User> requestEntity = new HttpEntity(u);
-		ResponseEntity<String> result = template.postForEntity("http://localhost:8080/jbai/api/async/register", u, String.class);
-		System.out.println(result);
-		HttpStatus statusCode = result.getStatusCode();
-		String code = result.getHeaders().get("x-code").get(0);
-		String message = result.getHeaders().get("x-message").get(0);
-		assertEquals(HttpStatus.OK, statusCode);
-		assertEquals(code, "200");
-		assertEquals(message, "success");
+	public void testRegisterUser() throws Exception {
+		User user = new User();
+		user.setName("1");
+		user.setLoginName("1");
+		user.setPassword("password");
+		String jsonUser = mapper.writeValueAsString(user);
+		
+		this.mockMvc.perform(post("/api/register").contentType(MediaType.parseMediaType("application/json;charset=UTF-8")).content(jsonUser))
+        .andExpect(status().isOk())
+        .andExpect(content().contentType("application/json"))
+        .andExpect(jsonPath("$.id").exists());
 	}
-	
-	@Test
-	public void testProfile() {
-		User u = new User();
-		u.setLoginName("loginname2");
-		u.setName("name2");
-		u.setPassword("password2");
-		HttpEntity<User> requestEntity = new HttpEntity(u);
-		ResponseEntity<String> result = template.postForEntity("http://localhost:8080/jbai/api/register", u, String.class);
-		System.out.println(result);
-		HttpStatus statusCode = result.getStatusCode();
-		String code = result.getHeaders().get("x-code").get(0);
-		String message = result.getHeaders().get("x-message").get(0);
-		assertEquals(HttpStatus.OK, statusCode);
-		assertEquals(code, "200");
-		assertEquals(message, "success");
-		
-		
-		
-		MultiValueMap<String, Object> parts = new LinkedMultiValueMap<String, Object>();
-		parts.add("userId", result.getBody());
-		parts.add("image", new FileSystemResource("D:\\source\\java\\spring-project-template\\src\\main\\webapp\\a.jpg"));
-
-		result = template.postForEntity("http://localhost:8080/jbai/api/profile", parts, String.class);
-		
-		System.out.println(result);
-		statusCode = result.getStatusCode();
-		code = result.getHeaders().get("x-code").get(0);
-		message = result.getHeaders().get("x-message").get(0);
-		assertEquals(HttpStatus.OK, statusCode);
-		assertEquals(code, "200");
-		assertEquals(message, "success");
-	}
-
 
 }
